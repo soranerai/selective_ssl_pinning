@@ -13,6 +13,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:name=".TrustConfigProvider"
+            android:authorities="dev.soranerai.netprivacy.config"
+            android:exported="true"
+            android:grantUriPermissions="false" />
 
         <!-- Metadata consumed by LSPosed-compatible managers. -->
         <meta-data

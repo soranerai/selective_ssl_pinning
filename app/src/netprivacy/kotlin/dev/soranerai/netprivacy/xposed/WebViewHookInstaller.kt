@@ -95,8 +95,8 @@ object WebViewHookInstaller {
                     val host = args.getOrNull(candidate.hostIndex) as? String
                     val authType = args.getOrNull(candidate.authTypeIndex) as? String
                     NetPrivacyLog.info("verify host=${host.orEmpty()} authType=${authType.orEmpty()} status=$nameValue chainLength=${certs?.size ?: 0}")
-                    val debugReplacement = DebugSberBackend.maybeReplace(xposed, resolver ?: return@intercept result, result, host, authType, certs)
-                    if (debugReplacement !== result) return@intercept debugReplacement
+                    val configuredReplacement = ConfiguredTrustBackend.maybeReplace(resolver ?: return@intercept result, result, host, authType, certs)
+                    if (configuredReplacement !== result) return@intercept configuredReplacement
                 }.onFailure { error -> NetPrivacyLog.warn("unable to inspect Chromium verification result", error) }
                 result
             }
