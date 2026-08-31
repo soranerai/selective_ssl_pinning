@@ -15,7 +15,9 @@ public final class WebViewTestActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WebView webView = new WebView(this);
-        webView.getSettings().setJavaScriptEnabled(false);
+        // The production module never changes WebView settings. This isolated test host enables
+        // JavaScript solely because the public target page renders its application shell with JS.
+        webView.getSettings().setJavaScriptEnabled(true);
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {

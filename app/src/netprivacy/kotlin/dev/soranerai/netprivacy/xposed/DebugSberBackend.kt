@@ -12,13 +12,22 @@ import dev.soranerai.netprivacy.trust.CustomCaVerifierFactory
 import dev.soranerai.netprivacy.trust.SelectiveTrustEngine
 import dev.soranerai.netprivacy.trust.VerificationOutcome
 import io.github.libxposed.api.XposedInterface
+import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipFile
 
-/** Temporary backend exercise: a single public CA and a single exact hostname in debug builds. */
+/**
+ * Temporary backend exercise: one in-memory CA and one exact hostname in debug builds.
+ *
+ * This is deliberately restrictive. It is not a certificate-validation bypass: the Android
+ * trust manager still validates the entire chain and the requested hostname before a Chromium
+ * result is replaced.
+ */
 object DebugSberBackend {
     private const val HOST = "online.sberbank.ru"
     private const val CERT_ID = "mincifry-rsa-2022"
     private const val ASSET = "assets/russian_trusted_root_ca.cer"
+    private val providers = ConcurrentHashMap<String, ApkAssetConfigProvider>()
+    private val factories = ConcurrentHashMap<String, CustomCaVerifierFactory>()
 
     fun maybeReplace(
         xposed: XposedInterface,
@@ -26,8 +35,10 @@ object DebugSberBackend {
         original: Any?, host: String?, authType: String?, chain: Array<*>?,
     ): Any? = runCatching {
         if (!BuildConfig.DEBUG || host != HOST || original == null) return@runCatching original
-        val provider = ApkAssetConfigProvider(xposed.getModuleApplicationInfo().sourceDir)
-        val engine = SelectiveTrustEngine(provider, resolver, StrictDomainMatcher, CustomCaVerifierFactory(provider))
+        val apkPath = xposed.getModuleApplicationInfo().sourceDir
+        val provider = providers.computeIfAbsent(apkPath, ::ApkAssetConfigProvider)
+        val factory = factories.computeIfAbsent(apkPath) { CustomCaVerifierFactory(provider) }
+        val engine = SelectiveTrustEngine(provider, resolver, StrictDomainMatcher, factory)
         when (val outcome = engine.verify(original, host, authType, chain)) {
             VerificationOutcome.KeepOriginal -> original
             is VerificationOutcome.CustomVerified -> WebView151ResultAdapter.create(original, outcome.chain) ?: original
