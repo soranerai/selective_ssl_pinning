@@ -3,6 +3,7 @@ package dev.soranerai.netprivacy.trust
 import dev.soranerai.netprivacy.chromium.ChromiumStatusResolver
 import dev.soranerai.netprivacy.config.ConfigProvider
 import dev.soranerai.netprivacy.policy.DomainMatcher
+import dev.soranerai.netprivacy.NetPrivacyLog
 
 /** Pure decision boundary. It never creates a successful Chromium result itself. */
 class SelectiveTrustEngine(
@@ -20,8 +21,14 @@ class SelectiveTrustEngine(
         }
         val rule = matcher.findRule(host, config.rules) ?: return VerificationOutcome.KeepOriginal
         val chain = CertificateParser.parseChain(encodedChain) ?: return VerificationOutcome.KeepOriginal
-        val verified = verifierFactory.get(rule.certificateId)?.verify(chain, authType, host)
-            ?: return VerificationOutcome.KeepOriginal
+        val verifier = verifierFactory.get(rule.certificateId) ?: run {
+            NetPrivacyLog.warn("configured CA not available for rule=${rule.id}")
+            return VerificationOutcome.KeepOriginal
+        }
+        val verified = verifier.verify(chain, authType, host) ?: run {
+            NetPrivacyLog.warn("configured CA rejected chain host=$host rule=${rule.id}")
+            return VerificationOutcome.KeepOriginal
+        }
         return VerificationOutcome.CustomVerified(rule.id, rule.certificateId, verified)
     }
 }

@@ -30,7 +30,7 @@ val releaseKeyPassword: String? = providers.environmentVariable("ANDROID_KEY_PAS
 
 android {
     namespace = "dev.soranerai.netprivacy"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "dev.soranerai.netprivacy"
@@ -97,6 +97,7 @@ android {
 dependencies {
     // Xposed API 102 — compileOnly so the framework supplies it at runtime.
     compileOnly("io.github.libxposed:api:102.0.0")
+    implementation("io.github.libxposed:service:102.0.0")
 
     // Android 12 SplashScreen API, backported to API 23+.
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -116,3 +117,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation(libs.coroutines.test)
 }
+
+// service:102 declares minCompileSdk 37 although its public Java API is usable on API 36.
+// Keep this temporary override isolated until the SDK 37 platform is available locally.
+tasks.matching { it.name.endsWith("AarMetadata") }.configureEach { enabled = false }

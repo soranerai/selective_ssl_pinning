@@ -18,8 +18,11 @@ import android.webkit.WebViewClient;
 
 /** Isolated host app for validating the module against an embedded WebView. */
 public final class WebViewTestActivity extends Activity {
+    private static final String PREFS = "test_navigation";
+    private static final String LAST_URL = "last_url";
     private WebView webView;
     private EditText urlField;
+    private TextView status;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -33,8 +36,10 @@ public final class WebViewTestActivity extends Activity {
         urlField = new EditText(this);
         urlField.setSingleLine(true);
         urlField.setHint("https://example.com");
-        urlField.setText(getIntent().getDataString() != null
-                ? getIntent().getDataString() : "https://self-signed.badssl.com/");
+        String initialUrl = getIntent().getDataString();
+        if (initialUrl == null) initialUrl = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getString(LAST_URL, "https://example.com/");
+        urlField.setText(initialUrl);
         controls.addView(urlField, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         Button open = new Button(this);
         open.setText("Открыть");
@@ -49,7 +54,7 @@ public final class WebViewTestActivity extends Activity {
         navigation.addView(back); navigation.addView(forward); navigation.addView(reload);
         root.addView(navigation);
 
-        TextView status = new TextView(this);
+        status = new TextView(this);
         status.setTextColor(Color.DKGRAY);
         status.setSingleLine(true);
         status.setPadding(12, 2, 12, 4);
@@ -59,6 +64,9 @@ public final class WebViewTestActivity extends Activity {
         // The production module never changes WebView settings. This isolated test host enables
         // JavaScript solely because the public target page renders its application shell with JS.
         webView.getSettings().setJavaScriptEnabled(true);
+        // MIUI/WebView may keep an overlay surface blank when WebView is below dynamic controls.
+        // Software rendering is limited to this diagnostic host and does not affect the module.
+        webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
@@ -95,6 +103,17 @@ public final class WebViewTestActivity extends Activity {
         webView.loadUrl(urlField.getText().toString());
     }
 
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String url = intent.getDataString();
+        if (url != null && !url.trim().isEmpty()) {
+            urlField.setText(url);
+            loadEnteredUrl(status);
+        }
+    }
+
     private Button navButton(String label) {
         Button button = new Button(this);
         button.setText(label);
@@ -105,6 +124,8 @@ public final class WebViewTestActivity extends Activity {
         String value = urlField.getText().toString().trim();
         if (value.isEmpty()) return;
         if (!value.matches("^[a-zA-Z][a-zA-Z0-9+.-]*://.*")) value = "https://" + value;
+        urlField.setText(value);
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(LAST_URL, value).apply();
         status.setText("Загрузка: " + value);
         webView.loadUrl(value);
     }
