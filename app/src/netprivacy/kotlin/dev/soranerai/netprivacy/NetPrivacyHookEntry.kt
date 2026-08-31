@@ -1,16 +1,17 @@
 package dev.soranerai.netprivacy
 
-import de.robv.android.xposed.IXposedHookLoadPackage
-import de.robv.android.xposed.callbacks.XC_LoadPackage
+import io.github.libxposed.api.XposedModule
+import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam
 import dev.soranerai.netprivacy.xposed.WebViewHookInstaller
 
 /** Installs WebView-only hooks inside applications selected in LSPosed scope. */
-class NetPrivacyHookEntry : IXposedHookLoadPackage {
-    override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        if (lpparam.packageName == MODULE_PACKAGE || lpparam.packageName == "android") return
+class NetPrivacyHookEntry : XposedModule() {
+    override fun onPackageLoaded(param: PackageLoadedParam) {
+        val packageName = param.getPackageName()
+        if (packageName == MODULE_PACKAGE || packageName == "android") return
 
-        NetPrivacyLog.info("installing WebView diagnostics for ${lpparam.packageName} (${lpparam.processName})")
-        WebViewHookInstaller.install(lpparam.classLoader, lpparam.packageName)
+        NetPrivacyLog.info("installing WebView diagnostics for $packageName")
+        WebViewHookInstaller.install(this, param.getDefaultClassLoader(), packageName)
     }
 
     private companion object {

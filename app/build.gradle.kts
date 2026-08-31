@@ -87,14 +87,15 @@ android {
             java.setSrcDirs(listOf("src/netprivacy/kotlin"))
             res.setSrcDirs(listOf("src/netprivacy/res"))
             assets.setSrcDirs(listOf("src/netprivacy/assets"))
+            resources.srcDir("src/netprivacy/resources")
         }
         getByName("test").java.setSrcDirs(listOf("src/netprivacyTest/kotlin"))
     }
 }
 
 dependencies {
-    // Xposed API — compileOnly so it's not bundled into the APK.
-    compileOnly("de.robv.android.xposed:api:82")
+    // Xposed API 102 — compileOnly so the framework supplies it at runtime.
+    compileOnly("io.github.libxposed:api:102.0.0")
 
     // Android 12 SplashScreen API, backported to API 23+.
     implementation("androidx.core:core-splashscreen:1.0.1")

@@ -1,11 +1,11 @@
-# LSPosed discovers the entry point only from assets/xposed_init. R8 cannot see
+# LibXposed discovers the entry point from META-INF/xposed/java_init.list. R8 cannot see
 # that reference, so keep the module's code and names intact in release APKs.
 # This also protects reflection-based Android API hooks from being stripped.
 -keep class dev.soranerai.netprivacy.** { *; }
 
 # Keep Xposed API types
--keep class de.robv.android.xposed.** { *; }
--dontwarn de.robv.android.xposed.**
+-keep class io.github.libxposed.api.** { *; }
+-dontwarn io.github.libxposed.annotation.**
 
 # JNA — UniFFI Kotlin bindings call Rust via JNA. Native.initIDs looks up
 # com.sun.jna.Pointer.peer via JNI at init time; R8 renaming these classes
