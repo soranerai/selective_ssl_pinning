@@ -1,0 +1,6 @@
+<resources>
+    <!-- Recommended targets shown by LSPosed managers when enabling the module. -->
+    <string-array name="xposedscope">
+        <item>com.jil2.privacychecker</item>
+    </string-array>
+</resources>

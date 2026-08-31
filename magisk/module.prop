@@ -1,0 +1,6 @@
+id=selective_webview_ca
+name=Selective WebView CA Trust (diagnostic)
+version=0.1.0-dev
+versionCode=1
+author=soranerai
+description=Zygisk diagnostic payload for Chrome process discovery. It does not alter certificate validation.
