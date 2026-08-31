@@ -19,3 +19,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "SelectiveWebViewCaTrust"
 include(":app")
+include(":webview-test-app")

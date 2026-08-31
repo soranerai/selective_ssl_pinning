@@ -36,3 +36,4 @@ local.properties
 legacy/
 app/src/main/
 app/schemas/
+third_party/chromium-src/

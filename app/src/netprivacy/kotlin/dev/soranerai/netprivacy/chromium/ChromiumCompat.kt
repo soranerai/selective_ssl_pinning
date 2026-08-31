@@ -6,9 +6,9 @@ package dev.soranerai.netprivacy.chromium
  */
 object ChromiumCompat {
     fun verifierClassCandidates(packageName: String): List<String> = when (packageName) {
-        // Chrome 152.0.7977.64: APK inspection identifies mou.c(byte[][], String, String,
-        // byte[], byte[]) as the verifier used by the native browser network stack.
-        "com.android.chrome" -> listOf("mou")
+        // Chrome 152.0.7977.64: APK inspection identifies this obfuscated verifier chain.
+        // Both candidates remain diagnostic-only until their invocation is observed.
+        "com.android.chrome" -> listOf("mou", "iou")
         else -> emptyList()
     }
 }

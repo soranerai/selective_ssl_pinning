@@ -90,6 +90,7 @@ android {
             resources.srcDir("src/netprivacy/resources")
         }
         getByName("test").java.setSrcDirs(listOf("src/netprivacyTest/kotlin"))
+        getByName("debug").resources.srcDir("src/debug/resources")
     }
 }
 

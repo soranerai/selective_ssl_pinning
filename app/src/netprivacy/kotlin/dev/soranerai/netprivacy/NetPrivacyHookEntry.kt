@@ -6,6 +6,10 @@ import dev.soranerai.netprivacy.xposed.WebViewHookInstaller
 
 /** Installs WebView-only hooks inside applications selected in LSPosed scope. */
 class NetPrivacyHookEntry : XposedModule() {
+    init {
+        NetPrivacyLog.info("module entry constructed")
+    }
+
     override fun onPackageLoaded(param: PackageLoadedParam) {
         val packageName = param.getPackageName()
         if (packageName == MODULE_PACKAGE || packageName == "android") return
