@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import dev.soranerai.netprivacy.config.ModuleConfig
 import dev.soranerai.netprivacy.data.TrustConfigStore
 import dev.soranerai.netprivacy.policy.TrustRule
+import dev.soranerai.netprivacy.trust.CertificateParser
 import dev.soranerai.netprivacy.ui.theme.NetPrivacyTheme
 import java.util.UUID
 
@@ -44,6 +45,7 @@ private enum class Screen { CERTIFICATES, TARGETS }
         runCatching {
             val bytes = requireNotNull(context.contentResolver.openInputStream(uri)).use { it.readBytes() }
             require(bytes.isNotEmpty()) { "Empty certificate" }
+            require(CertificateParser.parseCa(bytes) != null) { "Файл не является одиночным X.509-сертификатом CA" }
             val name = uri.lastPathSegment?.substringAfterLast('/')?.ifBlank { null } ?: "Imported CA"
             save(config.copy(certificates = config.certificates + store.importCertificate(bytes, name)))
         }.onFailure { error = it.message }
@@ -56,7 +58,8 @@ private enum class Screen { CERTIFICATES, TARGETS }
             Column(Modifier.padding(padding).fillMaxSize()) {
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp)) }
                 when (screen) {
-                    Screen.CERTIFICATES -> Certificates(config, ::save) { importer.launch(arrayOf("application/x-x509-ca-cert", "application/x-x509-user-cert", "application/octet-stream")) }
+                    // MIME databases often do not register .cer; content is validated after pick.
+                    Screen.CERTIFICATES -> Certificates(config, ::save) { importer.launch(arrayOf("*/*")) }
                     Screen.TARGETS -> Targets(config, ::save)
                 }
             }
